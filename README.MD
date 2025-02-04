@@ -3,13 +3,13 @@
 ## Checkout repo 
 To clone the repository, use the following command:
 ```bash
-git clone https://github.com/yourusername/goit-pythonweb-hw-08.git
+git clone https://github.com/yourusername/goit-pythonweb-hw-10.git
 ```
 
 ## Run postgres
 To run postgres database:
 ```bash
-docker run --name postgres-goit-pythonweb-hw-08 -p 5432:5432 -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=mysecretpassword -e POSTGRES_DB=hw08 -d postgres
+docker run --name postgres-goit-pythonweb-hw-10 -p 5432:5432 -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=mysecretpassword -e POSTGRES_DB=hw10 -d postgres
 ```
 
 ## Run application

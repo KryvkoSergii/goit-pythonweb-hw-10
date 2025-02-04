@@ -7,8 +7,9 @@ from database.db import get_db
 from services.contacts import ContactService
 from logger.logger import build_logger
 from fastapi import Path, Query
-from schemas import ErrorsContent
+from schemas import ErrorsContent, UserModel
 import datetime
+from services.auth import get_current_user
 
 logger = build_logger("contacts_app", "DEBUG")
 router = APIRouter(prefix="/contacts", tags=["contacts"])
@@ -31,9 +32,15 @@ async def read_contacts(
     last_name: str | None = Query(default=None, description="Contact last name"),
     email: str | None = Query(default=None, description="Contact email"),
     db: AsyncSession = Depends(get_db),
+    current_user: UserModel = Depends(get_current_user),
 ):
     query = ContactsQuery(
-        skip=skip, limit=limit, first_name=first_name, last_name=last_name, email=email
+        skip=skip,
+        limit=limit,
+        first_name=first_name,
+        last_name=last_name,
+        email=email,
+        user_id=current_user.id,
     )
     service = ContactService(logger=logger, db=db)
     contacts = await service.get_by_query(query)
@@ -44,11 +51,15 @@ async def read_contacts(
     "/",
     response_model=ContractModel,
     responses={422: {"model": ErrorsContent}, 500: {"model": ErrorsContent}},
-    status_code=status.HTTP_201_CREATED
+    status_code=status.HTTP_201_CREATED,
 )
-async def create_contacts(request: ContactBase, db: AsyncSession = Depends(get_db)):
+async def create_contacts(
+    request: ContactBase,
+    db: AsyncSession = Depends(get_db),
+    current_user: UserModel = Depends(get_current_user),
+):
     service = ContactService(logger=logger, db=db)
-    contact = await service.create(request)
+    contact = await service.create(request, current_user)
     return contact
 
 
@@ -66,9 +77,10 @@ async def update_contacts(
     request: ContractModel,
     contact_id: int = Path(description="Contact id"),
     db: AsyncSession = Depends(get_db),
+    current_user: UserModel = Depends(get_current_user),
 ):
     service = ContactService(logger=logger, db=db)
-    contact = await service.update(contact_id, request)
+    contact = await service.update(contact_id, request, current_user)
     return contact
 
 
@@ -84,9 +96,10 @@ async def update_contacts(
 async def delete_contacts(
     contact_id: int = Path(description="Contact id"),
     db: AsyncSession = Depends(get_db),
+    current_user: UserModel = Depends(get_current_user),
 ):
     service = ContactService(logger=logger, db=db)
-    contact = await service.remove(contact_id)
+    contact = await service.remove(contact_id, current_user)
     return contact
 
 
@@ -104,12 +117,14 @@ async def read_contacts_with_birthdays_in_7_days(
         default=10, le=100, ge=10, description="Number of records per response"
     ),
     db: AsyncSession = Depends(get_db),
+    current_user: UserModel = Depends(get_current_user),
 ):
     query = ContactsQuery(
         skip=skip,
         limit=limit,
         date_from=datetime.date.today(),
         date_to=datetime.date.today() + datetime.timedelta(days=7),
+        user_id=current_user.id,
     )
     service = ContactService(logger=logger, db=db)
     contacts = await service.get_by_query(query)

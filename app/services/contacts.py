@@ -1,6 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from repository.contacts import ContactRepository
-from schemas import ContactsQuery, ContractModel, ContactBase
+from schemas import ContactsQuery, ContractModel, ContactBase, UserModel
 from repository.models import Contact
 from logging import Logger
 from typing import List
@@ -20,13 +20,10 @@ class ContactService:
             map(lambda c: self.__transform_contact_to_contract_model(c), entities)
         )
 
-    async def get_by_id(self, id: int):
-        self.__logger.debug(f"searching for contact by id: '{id}'")
-        contact = await self.__contact_repository.get_by_id(id)
-        return self.__transform_contact_to_contract_model(contact)
-
-    async def create(self, contact: ContactBase):
-        self.__logger.info(f"creating contact: '{contact}'")
+    async def create(self, contact: ContactBase, current_user: UserModel):
+        self.__logger.info(
+            f"creating contact: '{contact}' by: '{current_user.username}'"
+        )
         date = None
         if contact.date:
             date = datetime.strptime(contact.date, "%Y-%m-%d").date()
@@ -38,19 +35,22 @@ class ContactService:
             phone=contact.phone,
             date=date,
             notes=contact.notes,
+            user_id=current_user.id,
         )
 
         contact = await self.__contact_repository.create(entity)
         return self.__transform_contact_to_contract_model(contact)
 
-    async def update(self, id: int, contact: ContractModel):
-        self.__logger.info(f"updating contact by id: '{id}' content: '{contact}'")
+    async def update(self, id: int, contact: ContractModel, current_user: UserModel):
+        self.__logger.info(
+            f"updating contact by id: '{id}' content: '{contact}' by: '{current_user.username}'"
+        )
         if id != contact.id:
             raise ValueError(
                 f"Id in request mismatch. Request: '{id}', body: '{contact.id}'"
             )
 
-        persisted = await self.__contact_repository.get_by_id(id)
+        persisted = await self.__contact_repository.get_by_id(id, current_user.id)
         if not persisted:
             raise ContactNotFoundError(id)
 
@@ -66,9 +66,11 @@ class ContactService:
         contact = await self.__contact_repository.update(persisted)
         return self.__transform_contact_to_contract_model(contact)
 
-    async def remove(self, id: int) -> ContractModel:
-        self.__logger.info(f"remove contact by id: '{id}'")
-        persisted = await self.__contact_repository.get_by_id(id)
+    async def remove(self, id: int, current_user: UserModel) -> ContractModel:
+        self.__logger.info(
+            f"remove contact by id: '{id}' by: '{current_user.username}'"
+        )
+        persisted = await self.__contact_repository.get_by_id(id, current_user.id)
         if not persisted:
             raise ContactNotFoundError(id)
         await self.__contact_repository.remove(persisted)

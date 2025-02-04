@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from datetime import date
 from typing import Optional, List
 
@@ -30,6 +30,7 @@ class ContactsQuery(BaseModel):
     email: Optional[str] = None
     date_from: Optional[date] = None
     date_to: Optional[date] = None
+    user_id: int
 
 
 class ErrorContent(BaseModel):
@@ -38,3 +39,36 @@ class ErrorContent(BaseModel):
 
 class ErrorsContent(BaseModel):
     errors: List[ErrorContent]
+
+
+class UserCreate(BaseModel):
+    username: str = Field(description="User name", min_length=3, max_length=100)
+    email: str = Field(
+        max_length=50,
+        pattern=r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$",
+        description="User email",
+    )
+    password: str = Field(description="User password", min_length=5, max_length=30)
+
+
+class UserModel(BaseModel):
+    id: int
+    username: str 
+    email: str
+    avatar: str | None
+
+    model_config = ConfigDict(from_attributes=True, validate_assignment=True)
+
+class TokenModel(BaseModel):
+    token_type: str = "bearer"
+    access_token: str
+
+class ConfirmationResponse(BaseModel):
+    message: str
+
+class ConfirmationRequest(BaseModel):
+    email: str = Field(
+        max_length=50,
+        pattern=r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$",
+        description="User email",
+    )

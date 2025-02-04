@@ -28,6 +28,7 @@ class ContactRepository:
             dynamic_query = dynamic_query.where(Contact.date >= query.date_from)
         if query.date_to:
             dynamic_query = dynamic_query.where(Contact.date <= query.date_to)
+        dynamic_query = dynamic_query.where(Contact.user_id == query.user_id)
         if query.skip:
             dynamic_query = dynamic_query.offset(query.skip)
         if query.limit:
@@ -35,8 +36,8 @@ class ContactRepository:
         contacts = await self.session.execute(dynamic_query)
         return contacts.scalars().all()
 
-    async def get_by_id(self, id: int) -> Contact | None:
-        stmt = select(Contact).filter_by(id=id)
+    async def get_by_id(self, id: int, user_id: int) -> Contact | None:
+        stmt = select(Contact).filter_by(id=id, user_id=user_id)
         contact = await self.session.execute(stmt)
         return contact.scalar_one_or_none()
 
@@ -44,12 +45,12 @@ class ContactRepository:
         self.session.add(contact)
         await self.session.commit()
         await self.session.refresh(contact)
-        return await self.get_by_id(contact.id)
+        return await self.get_by_id(contact.id, contact.user_id)
 
     async def update(self, contact: Contact) -> Contact:
         await self.session.commit()
         await self.session.refresh(contact)
-        return await self.get_by_id(contact.id)
+        return await self.get_by_id(contact.id, contact.user_id)
 
     async def remove(self, contact: Contact) -> Contact:
         await self.session.delete(contact)
