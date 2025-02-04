@@ -1,4 +1,33 @@
-# FastAPI PoC with SQLAlchemy Alembic
+# Python web app with AuthN and AuthZ PoC
+
+## Description
+The application is designed for securely storing contacts. Each user can create and manage their own contacts. The interface is provided by Swagger UI, allowing users to send authenticated requests.
+
+### Features and Functionality
+* User registration
+* Email confirmation
+* Avatar management
+* User authentication via username and password
+* Secure creation, updating, and deletion of contacts
+* Contact search based on specific criteria
+* Retrieval of contacts with birthdays in the next 7 days
+
+By default Swagger UI accessible:
+```
+http://localhost:8000/docs#/
+```
+![swagger](static/image.png)
+![authentication](static/auth.jpg)
+
+## Tech stack
+* SQLAlchemy
+* Alembic
+* FastAPI
+
+## Integrations
+* Application sents confirmation letters using https://meta.ua/
+* Application stores avatars (images) in https://cloudinary.com/
+* Uses PostgreSQL for data storage 
 
 ## Checkout repo 
 To clone the repository, use the following command:
@@ -6,13 +35,18 @@ To clone the repository, use the following command:
 git clone https://github.com/yourusername/goit-pythonweb-hw-10.git
 ```
 
-## Run postgres
-To run postgres database:
-```bash
-docker run --name postgres-goit-pythonweb-hw-10 -p 5432:5432 -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=mysecretpassword -e POSTGRES_DB=hw10 -d postgres
-```
+## Run application locally
+Register and provide credentials for https://meta.ua/ and https://cloudinary.com/ into .env-example file.
+Rename .env-example into .env
 
-## Run application
+Install dependencies
+```bash
+poetry install
+``` 
+Active environment
+```bash
+poetry shell
+``` 
 Apply DDL to DB 
 ```bash
 alembic upgrade head
@@ -21,13 +55,21 @@ To run the server:
 ```bash
 poetry run .\app\main.py
 ```
-By default swagger accessible:
-```
-http://127.0.0.1:8000/docs#/
+
+### Run postgres for local setup
+Start postgres database:
+```bash
+docker run --name postgres-goit-pythonweb-hw-10 -p 5432:5432 -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=mysecretpassword -e POSTGRES_DB=hw10 -d postgres
 ```
 
-![swagger](static/image.png)
+## Run application with docker compose
+Register and provide credentials for https://meta.ua/ and https://cloudinary.com/ into .env-example file.
+Rename .env-example into .env
 
+```bash
+ docker compose -f .\docker-compose.yaml up
+```
+Scripts 
 
 ## How to
 ### Visual Code and Poetry
